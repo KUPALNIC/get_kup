@@ -7,7 +7,10 @@ import threading as tr
 gp.setmode(gp.BCM)
 dac =[8,11,7,1,0,5,12,6]
 gp.setup(dac, gp.OUT)
-T=1
+comp=14
+tr =13
+gp.setup(tr, gp.OUT, initial=1)
+gp.setup(comp, gp.IN)
 
 def binary(n):
     sg=[]
@@ -20,25 +23,18 @@ def binary(n):
     sg.reverse()
     return sg
 
-def vivod():
-    global T
-    while True:
-        # x=np.linspace(0, input("T= "))
-        for i in range(0, 256, 1):
-            gp.output(dac, binary(int(i)))
-            time.sleep(T/511)
-        for i in range(255, 0, -1):
-            gp.output(dac, binary(int(i)))
-            time.sleep(T/511)
-
-tr.Thread(target=vivod).start()
-
+def adc():
+    for i in range(256):
+        gp.output(dac, binary(int(i)))
+        time.sleep(0.001)
+        if gp.input(comp)==1:
+            return i
+        
+    
 try:
-    T =int(input("T= "))
-    input()
-except:
-    pass
+    while 1:
+        print(adc()*3.3/256)
+        
 finally:
     gp.output(dac, [0,0,0,0,0,0,0,0])
     gp.cleanup()
-    
